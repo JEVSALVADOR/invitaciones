@@ -2,7 +2,13 @@
 @section('title', 'RSVP — ' . $event->main_name)
 
 @section('header-actions')
-<a href="{{ route('admin.events.index') }}" class="text-sm text-gray-500 hover:text-gray-700">← Volver</a>
+<div class="flex items-center gap-2">
+    <a href="{{ route('admin.events.rsvp.export', $event) }}"
+       class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50">
+        ⬇ Exportar CSV
+    </a>
+    <a href="{{ route('admin.events.index') }}" class="text-sm text-gray-500 hover:text-gray-700">← Volver</a>
+</div>
 @endsection
 
 @section('content')

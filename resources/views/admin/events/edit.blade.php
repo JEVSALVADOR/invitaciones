@@ -107,6 +107,17 @@
                                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Mensaje invitación general
+                                <span class="text-xs text-gray-400 font-normal ml-1">— visible solo en el enlace general (sin nombre de invitado)</span>
+                            </label>
+                            <input type="text" name="general_invite_message"
+                                   value="{{ old('general_invite_message', $event->general_invite_message) }}"
+                                   placeholder="ej: Hemos reservado un lugar para ti"
+                                   maxlength="200"
+                                   class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="sm:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje descriptivo</label>
                             <textarea name="love_message" rows="4"
                                       class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('love_message', $event->love_message) }}</textarea>
@@ -146,6 +157,155 @@
                     </div>
                 </div>
 
+                <!-- Recomendaciones -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+                     x-data="{ recs: {{ json_encode($event->recommendations ?? [['icon'=>'children','text'=>'']]) }} }">
+                    <h2 class="text-base font-semibold text-gray-800 mb-5 pb-2 border-b border-gray-100">Recomendaciones</h2>
+                    <template x-for="(rec, idx) in recs" :key="idx">
+                        <div class="flex items-start gap-3 mb-3">
+                            <select :name="'rec_icons[' + idx + ']'" x-model="rec.icon"
+                                    class="border border-gray-200 rounded-lg px-2 py-2.5 text-sm focus:outline-none">
+                                <option value="children">👶 Niños</option>
+                                <option value="phone">📱 Teléfono</option>
+                                <option value="clock">🕐 Puntualidad</option>
+                                <option value="car">🚗 Estacionamiento</option>
+                                <option value="camera">📷 Fotos</option>
+                            </select>
+                            <input type="text" :name="'rec_texts[' + idx + ']'" x-model="rec.text"
+                                   placeholder="Texto de la recomendación..."
+                                   class="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="button" @click="recs.splice(idx, 1)"
+                                    class="text-red-400 hover:text-red-600 mt-2.5">✕</button>
+                        </div>
+                    </template>
+                    <button type="button" @click="recs.push({ icon: 'clock', text: '' })"
+                            class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        + Agregar recomendación
+                    </button>
+                </div>
+
+                <!-- Paleta de colores -->
+                @php
+                    $colorFields = [
+                        'color_primary'   => ['label' => 'Color principal',   'desc' => 'Sobre, botones, footer, countdown',       'theme' => $event->theme->primary_color],
+                        'color_secondary' => ['label' => 'Color secundario',  'desc' => 'Acento decorativo secundario',             'theme' => $event->theme->secondary_color],
+                        'color_accent'    => ['label' => 'Color de acento',   'desc' => 'Letras en script, bordes dorados, iconos', 'theme' => $event->theme->accent_color],
+                        'color_bg'        => ['label' => 'Color de fondo',    'desc' => 'Fondo principal de la invitación',         'theme' => $event->theme->background_color],
+                        'color_text'      => ['label' => 'Color de texto',    'desc' => 'Texto general del cuerpo',                 'theme' => $event->theme->text_color],
+                        'color_envelope'  => ['label' => 'Color del sobre',   'desc' => 'Interior y exterior del sobre',            'theme' => $event->theme->envelope_color],
+                        'color_seal'      => ['label' => 'Color del sello',   'desc' => 'Sello de cera (wax seal)',                 'theme' => $event->theme->seal_color],
+                    ];
+                @endphp
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div class="flex items-center justify-between mb-5 pb-2 border-b border-gray-100">
+                        <div>
+                            <h2 class="text-base font-semibold text-gray-800">Paleta de colores</h2>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                Sobreescribe los colores del tema para este evento. Deja el campo vacío para usar el color del tema.
+                            </p>
+                        </div>
+                        <button type="button" onclick="paletteResetAll()"
+                                class="text-xs text-red-400 hover:text-red-600 font-medium">
+                            Restablecer todo
+                        </button>
+                    </div>
+
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        @foreach($colorFields as $field => $meta)
+                        @php $val = old($field, $event->$field ?? ''); @endphp
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50">
+
+                            {{-- Color picker visual (no name, solo actualiza el text input) --}}
+                            <input type="color"
+                                   id="picker_{{ $field }}"
+                                   value="{{ $val ?: $meta['theme'] }}"
+                                   data-default="{{ $meta['theme'] }}"
+                                   oninput="palettePickerChange('{{ $field }}', this.value)"
+                                   class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white flex-shrink-0"
+                                   title="Elegir color">
+
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold text-gray-700">{{ $meta['label'] }}</p>
+                                <p class="text-xs text-gray-400 mb-1">{{ $meta['desc'] }}</p>
+                                <div class="flex items-center gap-1">
+                                    {{-- Este input SÍ tiene name y es el que envía el formulario --}}
+                                    <input type="text"
+                                           name="{{ $field }}"
+                                           id="txt_{{ $field }}"
+                                           value="{{ $val }}"
+                                           placeholder="← del tema"
+                                           maxlength="20"
+                                           oninput="paletteTxtChange('{{ $field }}', this.value)"
+                                           class="w-28 text-xs border border-gray-200 rounded px-2 py-1 font-mono focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white">
+                                    <button type="button"
+                                            onclick="paletteClear('{{ $field }}')"
+                                            class="text-gray-300 hover:text-red-400 text-xs leading-none" title="Quitar color personalizado">✕</button>
+                                </div>
+                                <p class="text-xs mt-1" id="lbl_{{ $field }}">
+                                    @if($val)
+                                        <span class="text-emerald-600 font-medium">color personalizado</span>
+                                    @else
+                                        <span class="text-gray-300">usando tema</span>
+                                    @endif
+                                </p>
+                            </div>
+
+                            {{-- Preview swatch --}}
+                            <div id="swatch_{{ $field }}"
+                                 class="w-7 h-7 flex-shrink-0 rounded-full border border-gray-200 shadow-sm"
+                                 style="background: {{ $val ?: $meta['theme'] }}"></div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <script>
+                function palettePickerChange(field, value) {
+                    document.getElementById('txt_' + field).value = value;
+                    document.getElementById('swatch_' + field).style.background = value;
+                    document.getElementById('lbl_' + field).innerHTML = '<span class="text-emerald-600 font-medium">color personalizado</span>';
+                }
+                function paletteTxtChange(field, value) {
+                    var swatch = document.getElementById('swatch_' + field);
+                    var picker = document.getElementById('picker_' + field);
+                    var lbl    = document.getElementById('lbl_' + field);
+                    if (/^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/.test(value)) {
+                        picker.value = value;
+                        swatch.style.background = value;
+                        lbl.innerHTML = '<span class="text-emerald-600 font-medium">color personalizado</span>';
+                    } else {
+                        swatch.style.background = value || picker.dataset.default;
+                        lbl.innerHTML = value ? '<span class="text-amber-500">hex inválido</span>' : '<span class="text-gray-300">usando tema</span>';
+                    }
+                }
+                function paletteClear(field) {
+                    var def = document.getElementById('picker_' + field).dataset.default;
+                    document.getElementById('txt_' + field).value = '';
+                    document.getElementById('picker_' + field).value = def;
+                    document.getElementById('swatch_' + field).style.background = def;
+                    document.getElementById('lbl_' + field).innerHTML = '<span class="text-gray-300">usando tema</span>';
+                }
+                function paletteResetAll() {
+                    ['color_primary','color_secondary','color_accent','color_bg','color_text','color_envelope','color_seal']
+                        .forEach(function(f){ paletteClear(f); });
+                }
+                </script>
+
+                <!-- Secciones visibles -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-base font-semibold text-gray-800 mb-5 pb-2 border-b border-gray-100">Secciones visibles</h2>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        @foreach(['show_music_player' => '🎵 Reproductor', 'show_countdown' => '⏱ Contador', 'show_itinerary' => '📋 Itinerario', 'show_dress_code' => '👗 Dress Code', 'show_gift_suggestion' => '🎁 Regalos', 'show_recommendations' => '📌 Recomendaciones', 'show_rsvp' => '✉️ RSVP'] as $field => $label)
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="{{ $field }}" value="1"
+                                   {{ old($field, $event->$field) ? 'checked' : '' }}
+                                   class="w-4 h-4 rounded" style="accent-color: #1e3a5f">
+                            <span class="text-sm text-gray-700">{{ $label }}</span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
                 <div class="flex justify-end gap-3">
                     <button type="submit" class="px-6 py-2.5 rounded-lg text-sm font-medium text-white" style="background-color: #1e3a5f">
                         Guardar cambios
@@ -155,8 +315,11 @@
         </div>
 
         <!-- TAB: Fotos -->
-        <div x-show="tab === 'media'">
+        <div x-show="tab === 'media'" class="space-y-4">
+
+            <!-- Fotos del evento -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+                <h2 class="text-base font-semibold text-gray-800 pb-2 border-b border-gray-100">Fotos del evento</h2>
                 @foreach(['photo_main' => 'Foto Principal (Polaroid)', 'photo_second' => 'Segunda Foto (Marco dorado)', 'photo_third' => 'Tercera Foto (Efecto rasgado)'] as $type => $label)
                 @php $existing = $event->media->where('media_type', $type)->first(); @endphp
                 <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
@@ -187,6 +350,339 @@
                 </div>
                 @endforeach
             </div>
+
+            <!-- Overlays florales de portada -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="mb-5 pb-2 border-b border-gray-100">
+                    <h2 class="text-base font-semibold text-gray-800">Overlays florales de portada</h2>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Imágenes PNG con fondo transparente que reemplazan los adornos SVG generados en la portada de la invitación.
+                        Si no se sube una imagen se usará el SVG del tema por defecto.
+                    </p>
+                </div>
+
+                @php
+                    $floralItems = [
+                        'floral_top_left'    => ['label' => 'Flores esquina superior izquierda', 'desc' => 'Aparece en la esquina superior izquierda de la portada', 'relation' => 'floralTopLeft'],
+                        'floral_bottom_right'=> ['label' => 'Flores esquina inferior derecha',   'desc' => 'Aparece en la esquina inferior derecha de la portada',  'relation' => 'floralBottomRight'],
+                        'floral_envelope'    => ['label' => 'Flores sobre (envelope overlay)',    'desc' => 'Se superpone encima del sobre en la portada',           'relation' => 'floralEnvelope'],
+                    ];
+                @endphp
+
+                <div class="space-y-5">
+                    @foreach($floralItems as $type => $meta)
+                    @php $existing = $event->{$meta['relation']}; @endphp
+                    <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+
+                        <!-- Miniatura / Preview -->
+                        <div class="w-24 h-24 rounded-xl border border-dashed border-gray-200 bg-gray-50 flex-shrink-0 overflow-hidden flex items-center justify-center relative"
+                             style="background-image: linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%);background-size:12px 12px;background-position:0 0,6px 6px;">
+                            @if($existing)
+                            <img src="{{ Storage::url($existing->file_path) }}"
+                                 class="w-full h-full object-contain" alt="{{ $meta['label'] }}">
+                            @else
+                            <span class="text-3xl select-none">🌸</span>
+                            @endif
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800">{{ $meta['label'] }}</p>
+                            <p class="text-xs text-gray-400 mb-3">{{ $meta['desc'] }}</p>
+
+                            <form method="POST" action="{{ route('admin.events.media.upload', $event) }}"
+                                  enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+                                @csrf
+                                <input type="hidden" name="media_type" value="{{ $type }}">
+                                <input type="file" name="media_file" accept=".png,.PNG,image/png" required
+                                       class="text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                                <button type="submit"
+                                        class="px-3 py-1.5 rounded text-xs font-medium text-white"
+                                        style="background-color: #1e3a5f">
+                                    {{ $existing ? 'Reemplazar' : 'Subir PNG' }}
+                                </button>
+                            </form>
+
+                            @if($existing)
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="text-xs text-emerald-600 font-medium">PNG personalizado activo</span>
+                                <form method="POST"
+                                      action="{{ route('admin.events.media.delete', [$event, $existing]) }}">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            onclick="return confirm('¿Eliminar este overlay y volver al SVG del tema?')"
+                                            class="text-xs text-red-500 hover:text-red-700">
+                                        Eliminar y usar SVG
+                                    </button>
+                                </form>
+                            </div>
+                            @else
+                            <p class="text-xs text-gray-400 mt-1">Usando SVG del tema por defecto</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Overlays florales interiores -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="mb-5 pb-2 border-b border-gray-100">
+                    <h2 class="text-base font-semibold text-gray-800">Overlays florales interiores</h2>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Adornos PNG que aparecen dentro de la invitación (tras abrir el sobre).
+                        Si no se sube una imagen se usará el SVG del tema por defecto.
+                    </p>
+                </div>
+
+                @php
+                    $innerFloralItems = [
+                        'floral_divider' => ['label' => 'Divisor floral entre secciones', 'desc' => 'Separador decorativo entre la sección del sobre abierto y el calendario', 'relation' => 'floralDivider'],
+                        'floral_cal_tl'  => ['label' => 'Floral calendario — esquina superior izquierda', 'desc' => 'Adorno en la esquina superior izquierda del calendario "Reserva la fecha"', 'relation' => 'floralCalTl'],
+                        'floral_cal_br'  => ['label' => 'Floral calendario — esquina inferior derecha',  'desc' => 'Adorno en la esquina inferior derecha del calendario "Reserva la fecha"',  'relation' => 'floralCalBr'],
+                    ];
+                @endphp
+
+                <div class="space-y-5">
+                    @foreach($innerFloralItems as $type => $meta)
+                    @php $existing = $event->{$meta['relation']}; @endphp
+                    <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+
+                        <!-- Miniatura con fondo ajedrezado para ver transparencia -->
+                        <div class="w-24 h-24 rounded-xl border border-dashed border-gray-200 bg-gray-50 flex-shrink-0 overflow-hidden flex items-center justify-center"
+                             style="background-image: linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%);background-size:12px 12px;background-position:0 0,6px 6px;">
+                            @if($existing)
+                            <img src="{{ Storage::url($existing->file_path) }}"
+                                 class="w-full h-full object-contain" alt="{{ $meta['label'] }}">
+                            @else
+                            <span class="text-3xl select-none">🌿</span>
+                            @endif
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800">{{ $meta['label'] }}</p>
+                            <p class="text-xs text-gray-400 mb-3">{{ $meta['desc'] }}</p>
+
+                            <form method="POST" action="{{ route('admin.events.media.upload', $event) }}"
+                                  enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+                                @csrf
+                                <input type="hidden" name="media_type" value="{{ $type }}">
+                                <input type="file" name="media_file" accept=".png,.PNG,image/png" required
+                                       class="text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                                <button type="submit"
+                                        class="px-3 py-1.5 rounded text-xs font-medium text-white"
+                                        style="background-color: #1e3a5f">
+                                    {{ $existing ? 'Reemplazar' : 'Subir PNG' }}
+                                </button>
+                            </form>
+
+                            @if($existing)
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="text-xs text-emerald-600 font-medium">PNG personalizado activo</span>
+                                <form method="POST"
+                                      action="{{ route('admin.events.media.delete', [$event, $existing]) }}">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            onclick="return confirm('¿Eliminar este overlay y volver al SVG del tema?')"
+                                            class="text-xs text-red-500 hover:text-red-700">
+                                        Eliminar y usar SVG
+                                    </button>
+                                </form>
+                            </div>
+                            @else
+                            <p class="text-xs text-gray-400 mt-1">Usando SVG del tema por defecto</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Sellos de la carta (wax seal) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex flex-wrap items-start justify-between gap-4 mb-5 pb-3 border-b border-gray-100">
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-base font-semibold text-gray-800">Sello de la carta</h2>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Imagen PNG circular (fondo transparente) que reemplaza el sello de cera.
+                            Las iniciales se muestran encima del sello tanto en la carta cerrada como abierta.
+                        </p>
+                    </div>
+
+                    {{-- Iniciales del sello --}}
+                    <form method="POST" action="{{ route('admin.events.seal.initials', $event) }}"
+                          class="flex items-end gap-2 flex-shrink-0">
+                        @csrf
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">
+                                Iniciales del sello
+                                @if($event->seal_initials)
+                                <span class="text-amber-600 font-medium ml-1">— "{{ $event->seal_initials }}"</span>
+                                @endif
+                            </label>
+                            <input type="text"
+                                   name="seal_initials"
+                                   value="{{ old('seal_initials', $event->seal_initials ?? '') }}"
+                                   placeholder="ej: MV"
+                                   maxlength="10"
+                                   class="w-24 text-sm border border-gray-200 rounded-lg px-3 py-2 text-center font-serif tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-400">
+                        </div>
+                        <button type="submit"
+                                class="px-3 py-2 rounded-lg text-xs font-medium text-white flex-shrink-0"
+                                style="background-color: #c9a84c">
+                            Guardar
+                        </button>
+                        @if($event->seal_initials)
+                        <a href="{{ route('admin.events.seal.initials', $event) }}"
+                           onclick="event.preventDefault();this.closest('form').querySelector('[name=seal_initials]').value='';this.closest('form').submit();"
+                           class="text-xs text-red-400 hover:text-red-600 self-center">Quitar</a>
+                        @endif
+                    </form>
+                </div>
+
+                @php
+                    $sealItems = [
+                        'seal_closed' => [
+                            'label'    => 'Sello — carta cerrada',
+                            'desc'     => 'Aparece sobre el sobre cerrado en la portada',
+                            'relation' => 'sealClosed',
+                            'emoji'    => '🔒',
+                        ],
+                        'seal_open' => [
+                            'label'    => 'Sello — carta abierta',
+                            'desc'     => 'Aparece en la tarjeta oval y en la sección RSVP',
+                            'relation' => 'sealOpen',
+                            'emoji'    => '💌',
+                        ],
+                    ];
+                @endphp
+
+                <div class="space-y-5">
+                    @foreach($sealItems as $type => $meta)
+                    @php $existing = $event->{$meta['relation']}; @endphp
+                    <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+
+                        <!-- Miniatura circular con fondo ajedrezado -->
+                        <div class="w-20 h-20 rounded-full border-2 border-dashed border-gray-200 flex-shrink-0 overflow-hidden flex items-center justify-center"
+                             style="background-image:linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%);background-size:10px 10px;background-position:0 0,5px 5px;">
+                            @if($existing)
+                            <img src="{{ Storage::url($existing->file_path) }}"
+                                 class="w-full h-full object-contain" alt="{{ $meta['label'] }}" style="border-radius:50%;">
+                            @else
+                            <span class="text-2xl select-none">{{ $meta['emoji'] }}</span>
+                            @endif
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800">{{ $meta['label'] }}</p>
+                            <p class="text-xs text-gray-400 mb-3">{{ $meta['desc'] }}</p>
+
+                            <form method="POST" action="{{ route('admin.events.media.upload', $event) }}"
+                                  enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+                                @csrf
+                                <input type="hidden" name="media_type" value="{{ $type }}">
+                                <input type="file" name="media_file" accept=".png,.PNG,image/png" required
+                                       class="text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                                <button type="submit"
+                                        class="px-3 py-1.5 rounded text-xs font-medium text-white"
+                                        style="background-color: #1e3a5f">
+                                    {{ $existing ? 'Reemplazar' : 'Subir PNG' }}
+                                </button>
+                            </form>
+
+                            @if($existing)
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="text-xs text-amber-600 font-medium">PNG personalizado activo</span>
+                                <form method="POST"
+                                      action="{{ route('admin.events.media.delete', [$event, $existing]) }}">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            onclick="return confirm('¿Eliminar este sello y volver al estilo por defecto?')"
+                                            class="text-xs text-red-500 hover:text-red-700">
+                                        Eliminar y usar estilo CSS
+                                    </button>
+                                </form>
+                            </div>
+                            @else
+                            <p class="text-xs text-gray-400 mt-1">Usando sello CSS por defecto</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Bordes rasgados (tercera foto) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="mb-5 pb-2 border-b border-gray-100">
+                    <h2 class="text-base font-semibold text-gray-800">Bordes rasgados — Tercera foto</h2>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Imágenes PNG (con transparencia) que reemplazan el efecto SVG de papel rasgado sobre la tercera foto.
+                        Sube una imagen para el borde superior y otra para el inferior.
+                    </p>
+                </div>
+
+                @php
+                    $tornItems = [
+                        'torn_top'    => ['label' => 'Borde rasgado superior', 'desc' => 'Se superpone en la parte superior de la foto', 'relation' => 'tornTop',    'emoji' => '⬆️'],
+                        'torn_bottom' => ['label' => 'Borde rasgado inferior', 'desc' => 'Se superpone en la parte inferior de la foto', 'relation' => 'tornBottom', 'emoji' => '⬇️'],
+                    ];
+                @endphp
+
+                <div class="space-y-5">
+                    @foreach($tornItems as $type => $meta)
+                    @php $existing = $event->{$meta['relation']}; @endphp
+                    <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+
+                        {{-- Preview --}}
+                        <div class="w-24 h-14 rounded-lg border border-dashed border-gray-200 flex-shrink-0 overflow-hidden flex items-center justify-center"
+                             style="background-image:linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%);background-size:10px 10px;background-position:0 0,5px 5px;">
+                            @if($existing)
+                                <img src="{{ Storage::url($existing->file_path) }}"
+                                     class="w-full h-full object-fill" alt="{{ $meta['label'] }}">
+                            @else
+                                <span class="text-xl select-none">{{ $meta['emoji'] }}</span>
+                            @endif
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800">{{ $meta['label'] }}</p>
+                            <p class="text-xs text-gray-400 mb-3">{{ $meta['desc'] }}</p>
+
+                            <form method="POST" action="{{ route('admin.events.media.upload', $event) }}"
+                                  enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+                                @csrf
+                                <input type="hidden" name="media_type" value="{{ $type }}">
+                                <input type="file" name="media_file" accept=".png,.PNG,image/png" required
+                                       class="text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+                                <button type="submit"
+                                        class="px-3 py-1.5 rounded text-xs font-medium text-white"
+                                        style="background-color: #1e3a5f">
+                                    {{ $existing ? 'Reemplazar' : 'Subir PNG' }}
+                                </button>
+                            </form>
+
+                            @if($existing)
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="text-xs text-violet-600 font-medium">PNG personalizado activo</span>
+                                <form method="POST"
+                                      action="{{ route('admin.events.media.delete', [$event, $existing]) }}">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            onclick="return confirm('¿Eliminar este borde y volver al SVG por defecto?')"
+                                            class="text-xs text-red-500 hover:text-red-700">
+                                        Eliminar y usar SVG
+                                    </button>
+                                </form>
+                            </div>
+                            @else
+                            <p class="text-xs text-gray-400 mt-1">Usando efecto SVG por defecto</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
         </div>
 
         <!-- TAB: Música -->
@@ -239,6 +735,7 @@
                             <input type="text" value="{{ $loc->location_type }}" placeholder="Tipo (CEREMONIA, RECEPCIÓN...)" class="border border-gray-200 rounded px-3 py-2 text-sm loc-type">
                             <input type="text" value="{{ $loc->venue_name }}" placeholder="Nombre del lugar" class="border border-gray-200 rounded px-3 py-2 text-sm loc-venue">
                             <textarea class="border border-gray-200 rounded px-3 py-2 text-sm loc-address sm:col-span-2" rows="2" placeholder="Dirección completa">{{ $loc->address }}</textarea>
+                            <input type="text" value="{{ $loc->city }}" placeholder="Ciudad" class="border border-gray-200 rounded px-3 py-2 text-sm loc-city">
                             <input type="time" value="{{ $loc->event_time }}" class="border border-gray-200 rounded px-3 py-2 text-sm loc-time">
                             <input type="url" value="{{ $loc->google_maps_url }}" placeholder="URL de Google Maps" class="border border-gray-200 rounded px-3 py-2 text-sm loc-maps">
                         </div>
@@ -357,20 +854,27 @@ async function apiPost(url, data) {
 
 async function saveLocation(id) {
     const row = document.querySelector(`[data-id="${id}"]`);
+    const btn = row.querySelector('button');
     const data = {
-        _method: 'PUT',
-        location_type: row.querySelector('.loc-type').value,
-        venue_name: row.querySelector('.loc-venue').value,
-        address: row.querySelector('.loc-address').value,
-        event_time: row.querySelector('.loc-time').value,
-        google_maps_url: row.querySelector('.loc-maps').value,
+        location_type:   row.querySelector('.loc-type').value,
+        venue_name:      row.querySelector('.loc-venue').value,
+        address:         row.querySelector('.loc-address').value,
+        city:            row.querySelector('.loc-city').value || null,
+        event_time:      row.querySelector('.loc-time').value || null,
+        google_maps_url: row.querySelector('.loc-maps').value || null,
     };
     const res = await fetch(`/admin/locations/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
         body: JSON.stringify(data)
     });
-    if (res.ok) { alert('Ubicación guardada'); } else { alert('Error al guardar'); }
+    if (res.ok) {
+        btn.textContent = '✓ Guardado';
+        setTimeout(() => { btn.textContent = 'Guardar'; }, 2000);
+    } else {
+        btn.textContent = '✗ Error';
+        setTimeout(() => { btn.textContent = 'Guardar'; }, 2000);
+    }
 }
 
 async function deleteLocation(id, btn) {
@@ -381,19 +885,43 @@ async function deleteLocation(id, btn) {
     if (res.ok) btn.closest('.location-row').remove();
 }
 
-function addLocation() {
-    alert('Use el botón de guardar en una nueva fila — CRUD de ubicaciones vía API (implementar endpoint).');
+async function addLocation() {
+    const res = await apiPost('/admin/locations', {
+        event_id:        eventId,
+        location_type:   'NUEVA UBICACIÓN',
+        venue_name:      null,
+        address:         null,
+        city:            null,
+        event_time:      null,
+        google_maps_url: null,
+    });
+    if (!res.success) { console.error('Error al crear ubicación'); return; }
+    const html = `
+    <div class="border border-gray-200 rounded-lg p-4 location-row" data-id="${res.id}">
+        <div class="grid sm:grid-cols-2 gap-3">
+            <input type="text" value="NUEVA UBICACIÓN" placeholder="Tipo (CEREMONIA, RECEPCIÓN...)" class="border border-gray-200 rounded px-3 py-2 text-sm loc-type">
+            <input type="text" value="" placeholder="Nombre del lugar" class="border border-gray-200 rounded px-3 py-2 text-sm loc-venue">
+            <textarea class="border border-gray-200 rounded px-3 py-2 text-sm loc-address sm:col-span-2" rows="2" placeholder="Dirección completa"></textarea>
+            <input type="text" value="" placeholder="Ciudad" class="border border-gray-200 rounded px-3 py-2 text-sm loc-city">
+            <input type="time" value="" class="border border-gray-200 rounded px-3 py-2 text-sm loc-time">
+            <input type="url" value="" placeholder="URL de Google Maps" class="border border-gray-200 rounded px-3 py-2 text-sm loc-maps">
+        </div>
+        <div class="flex justify-between mt-3">
+            <button type="button" onclick="saveLocation(${res.id})" class="text-xs px-3 py-1 bg-blue-600 text-white rounded">Guardar</button>
+            <button type="button" onclick="deleteLocation(${res.id}, this)" class="text-xs text-red-500 hover:text-red-700">Eliminar</button>
+        </div>
+    </div>`;
+    document.getElementById('locations-container').insertAdjacentHTML('beforeend', html);
 }
 
 async function saveItineraryItem(id, btn) {
     const row = btn.closest('[data-id]');
     const data = {
-        _method: 'PUT',
-        time_label: row.querySelector('.item-time-label').value,
-        event_time: row.querySelector('.item-time').value,
+        time_label:    row.querySelector('.item-time-label').value,
+        event_time:    row.querySelector('.item-time').value || null,
         activity_name: row.querySelector('.item-activity').value,
-        icon_type: row.querySelector('.item-icon').value,
-        position: row.querySelector('.item-position').value,
+        icon_type:     row.querySelector('.item-icon').value,
+        position:      row.querySelector('.item-position').value,
     };
     const res = await fetch(`/admin/itinerary/${id}`, {
         method: 'POST',
@@ -409,6 +937,38 @@ async function deleteItineraryItem(id, btn) {
         method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrfToken }
     });
     if (res.ok) btn.closest('[data-id]').remove();
+}
+
+async function addItineraryItem() {
+    const res = await apiPost('/admin/itinerary', {
+        event_id:      eventId,
+        time_label:    '',
+        event_time:    '12:00',
+        activity_name: 'Nueva actividad',
+        icon_type:     'party',
+        position:      'right',
+    });
+    if (!res.success) { alert('Error al crear item'); return; }
+    const iconOpts = {church:'Iglesia',camera:'Cámara',reception_table:'Mesa',cake:'Pastel',dance:'Baile',dinner:'Cena',party:'Fiesta',toast:'Brindis',car:'Auto',ring:'Anillo'};
+    const options  = Object.entries(iconOpts).map(([v,l]) => `<option value="${v}"${v==='party'?' selected':''}>${l}</option>`).join('');
+    const html = `
+    <div class="border border-gray-200 rounded-lg p-4" data-id="${res.id}">
+        <div class="grid sm:grid-cols-3 gap-3">
+            <input type="text" value="" placeholder="4:00 PM" class="border border-gray-200 rounded px-3 py-2 text-sm item-time-label">
+            <input type="time" value="12:00" class="border border-gray-200 rounded px-3 py-2 text-sm item-time">
+            <input type="text" value="Nueva actividad" placeholder="CEREMONIA, VALS..." class="border border-gray-200 rounded px-3 py-2 text-sm item-activity">
+            <select class="border border-gray-200 rounded px-3 py-2 text-sm item-icon">${options}</select>
+            <select class="border border-gray-200 rounded px-3 py-2 text-sm item-position">
+                <option value="right" selected>Derecha</option>
+                <option value="left">Izquierda</option>
+            </select>
+        </div>
+        <div class="flex justify-between mt-3">
+            <button type="button" onclick="saveItineraryItem(${res.id}, this)" class="text-xs px-3 py-1 bg-blue-600 text-white rounded">Guardar</button>
+            <button type="button" onclick="deleteItineraryItem(${res.id}, this)" class="text-xs text-red-500">Eliminar</button>
+        </div>
+    </div>`;
+    document.getElementById('itinerary-container').insertAdjacentHTML('beforeend', html);
 }
 </script>
 

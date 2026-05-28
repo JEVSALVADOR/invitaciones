@@ -41,6 +41,8 @@ Route::prefix('admin')
             ->name('events.media.delete');
         Route::post('events/{event}/song', [Admin\EventController::class, 'uploadSong'])
             ->name('events.song.upload');
+        Route::post('events/{event}/seal-initials', [Admin\EventController::class, 'updateSealInitials'])
+            ->name('events.seal.initials');
 
         // Invitados
         Route::resource('events.guests', Admin\GuestController::class)
@@ -51,6 +53,8 @@ Route::prefix('admin')
         // RSVP
         Route::get('events/{event}/rsvp', [Admin\RsvpController::class, 'index'])
             ->name('events.rsvp');
+        Route::get('events/{event}/rsvp/export', [Admin\RsvpController::class, 'export'])
+            ->name('events.rsvp.export');
 
         // Temas
         Route::resource('themes', Admin\ThemeController::class);

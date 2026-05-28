@@ -13,7 +13,7 @@ class ItineraryController extends Controller
     {
         $validated = $request->validate([
             'time_label'    => 'required|string|max:20',
-            'event_time'    => 'required|date_format:H:i',
+            'event_time'    => 'required|date_format:H:i,H:i:s',
             'activity_name' => 'required|string|max:200',
             'icon_type'     => 'required|string',
             'position'      => 'required|in:left,right',
@@ -34,7 +34,7 @@ class ItineraryController extends Controller
         $validated = $request->validate([
             'event_id'      => 'required|exists:events,id',
             'time_label'    => 'required|string|max:20',
-            'event_time'    => 'required|date_format:H:i',
+            'event_time'    => 'required|date_format:H:i,H:i:s',
             'activity_name' => 'required|string|max:200',
             'icon_type'     => 'required|string',
             'position'      => 'required|in:left,right',

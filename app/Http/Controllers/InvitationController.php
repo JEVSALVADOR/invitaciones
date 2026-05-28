@@ -17,6 +17,10 @@ class InvitationController extends Controller
         $event = Event::with([
             'theme', 'media', 'locations', 'itinerary',
             'mainPhoto', 'secondPhoto', 'thirdPhoto',
+            'floralTopLeft', 'floralBottomRight', 'floralEnvelope',
+            'floralDivider', 'floralCalTl', 'floralCalBr',
+            'sealClosed', 'sealOpen',
+            'tornTop', 'tornBottom',
         ])
             ->where('uuid', $uuid)
             ->published()
@@ -35,6 +39,10 @@ class InvitationController extends Controller
         $event = Event::with([
             'theme', 'media', 'locations', 'itinerary',
             'mainPhoto', 'secondPhoto', 'thirdPhoto',
+            'floralTopLeft', 'floralBottomRight', 'floralEnvelope',
+            'floralDivider', 'floralCalTl', 'floralCalBr',
+            'sealClosed', 'sealOpen',
+            'tornTop', 'tornBottom',
         ])
             ->where('uuid', $uuid)
             ->published()
@@ -69,9 +77,17 @@ class InvitationController extends Controller
             default       => 0,
         };
 
+        $guestId = $request->input('guest_id');
+        if ($guestId) {
+            $exists = \App\Models\EventGuest::where('id', $guestId)
+                ->where('event_id', $event->id)
+                ->exists();
+            if (! $exists) $guestId = null;
+        }
+
         $rsvp = RsvpResponse::create([
             'event_id'          => $event->id,
-            'guest_id'          => null,
+            'guest_id'          => $guestId ?: null,
             'respondent_name'   => $validated['respondent_name'],
             'attendance_option' => $validated['attendance_option'],
             'total_attendees'   => $totalAttendees,

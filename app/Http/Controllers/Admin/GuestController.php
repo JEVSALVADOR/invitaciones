@@ -71,10 +71,20 @@ class GuestController extends Controller
     {
         $guests = $event->guests()->with('rsvpResponse')->get();
         $csv = "Nombre,Asientos,Teléfono,Email,URL Invitación,RSVP\n";
+        $ids  = [];
+
         foreach ($guests as $g) {
             $url  = url("/i/{$event->uuid}/{$g->guest_slug}");
             $rsvp = $g->rsvpResponse?->attendance_option ?? 'Sin respuesta';
             $csv .= "\"{$g->guest_name}\",{$g->seats_reserved},\"{$g->phone}\",\"{$g->email}\",\"{$url}\",\"{$rsvp}\"\n";
+            if (! $g->invitation_sent) $ids[] = $g->id;
+        }
+
+        if (! empty($ids)) {
+            \App\Models\EventGuest::whereIn('id', $ids)->update([
+                'invitation_sent'    => true,
+                'invitation_sent_at' => now(),
+            ]);
         }
 
         return response($csv, 200, [

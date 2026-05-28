@@ -43,7 +43,7 @@ class EventController extends Controller
 
     public function edit(Event $event): View
     {
-        $event->load(['theme', 'media', 'locations', 'itinerary']);
+        $event->load(['theme', 'media', 'locations', 'itinerary', 'floralTopLeft', 'floralBottomRight', 'floralEnvelope', 'floralDivider', 'floralCalTl', 'floralCalBr', 'sealClosed', 'sealOpen', 'tornTop', 'tornBottom']);
         $themes = Theme::active()->get();
         return view('admin.events.edit', compact('event', 'themes'));
     }
@@ -52,6 +52,16 @@ class EventController extends Controller
     {
         $validated = $this->validateEvent($request, $event->id);
         $validated['recommendations'] = $this->parseRecommendations($request);
+
+        foreach (['show_music_player', 'show_dress_code', 'show_gift_suggestion', 'show_recommendations', 'show_rsvp', 'show_countdown', 'show_itinerary'] as $field) {
+            $validated[$field] = $request->boolean($field);
+        }
+
+        foreach (['color_primary','color_secondary','color_accent','color_bg','color_text','color_envelope','color_seal'] as $col) {
+            if (isset($validated[$col]) && trim($validated[$col]) === '') {
+                $validated[$col] = null;
+            }
+        }
 
         $event->update($validated);
 
@@ -84,8 +94,8 @@ class EventController extends Controller
     public function uploadMedia(Request $request, Event $event): RedirectResponse
     {
         $request->validate([
-            'media_type' => 'required|in:photo_main,photo_second,photo_third,photo_gallery',
-            'media_file' => 'required|image|max:5120',
+            'media_type' => 'required|in:photo_main,photo_second,photo_third,photo_gallery,floral_top_left,floral_bottom_right,floral_envelope,floral_divider,floral_cal_tl,floral_cal_br,seal_closed,seal_open,torn_top,torn_bottom',
+            'media_file' => 'required|image|mimes:png,jpg,jpeg,gif,webp|max:5120',
         ]);
 
         $path = $request->file('media_file')->store(
@@ -120,6 +130,13 @@ class EventController extends Controller
         return back()->with('success', 'Foto eliminada.');
     }
 
+    public function updateSealInitials(Request $request, Event $event): RedirectResponse
+    {
+        $request->validate(['seal_initials' => 'nullable|string|max:10']);
+        $event->update(['seal_initials' => $request->input('seal_initials') ?: null]);
+        return back()->with('success', 'Iniciales del sello guardadas.');
+    }
+
     public function uploadSong(Request $request, Event $event): RedirectResponse
     {
         $request->validate([
@@ -152,8 +169,8 @@ class EventController extends Controller
             'second_name'        => 'nullable|string|max:200',
             'event_title_custom' => 'nullable|string|max:300',
             'event_date'         => 'required|date',
-            'ceremony_time'      => 'nullable|date_format:H:i',
-            'reception_time'     => 'nullable|date_format:H:i',
+            'ceremony_time'      => 'nullable|date_format:H:i,H:i:s',
+            'reception_time'     => 'nullable|date_format:H:i,H:i:s',
             'love_message'       => 'nullable|string',
             'bible_verse'        => 'nullable|string',
             'bible_reference'    => 'nullable|string|max:50',
@@ -171,6 +188,14 @@ class EventController extends Controller
             'contact_whatsapp'   => 'nullable|string|max:20',
             'contact_name'       => 'nullable|string|max:100',
             'total_seats'        => 'nullable|integer|min:0',
+            'color_primary'      => 'nullable|string|max:20',
+            'color_secondary'    => 'nullable|string|max:20',
+            'color_accent'       => 'nullable|string|max:20',
+            'color_bg'           => 'nullable|string|max:20',
+            'color_text'         => 'nullable|string|max:20',
+            'color_envelope'     => 'nullable|string|max:20',
+            'color_seal'             => 'nullable|string|max:20',
+            'general_invite_message' => 'nullable|string|max:200',
         ]);
     }
 

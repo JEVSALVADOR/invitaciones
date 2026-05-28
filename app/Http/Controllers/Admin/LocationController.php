@@ -17,7 +17,7 @@ class LocationController extends Controller
             'address'          => 'required|string',
             'city'             => 'nullable|string|max:100',
             'google_maps_url'  => 'nullable|url',
-            'event_time'       => 'nullable|date_format:H:i',
+            'event_time'       => 'nullable|date_format:H:i,H:i:s',
         ]);
 
         $location->update($validated);
@@ -34,11 +34,11 @@ class LocationController extends Controller
     {
         $validated = $request->validate([
             'event_id'        => 'required|exists:events,id',
-            'location_type'   => 'required|string|max:100',
+            'location_type'   => 'nullable|string|max:100',
             'venue_name'      => 'nullable|string|max:200',
-            'address'         => 'required|string',
+            'address'         => 'nullable|string',
             'google_maps_url' => 'nullable|url',
-            'event_time'      => 'nullable|date_format:H:i',
+            'event_time'      => 'nullable|date_format:H:i,H:i:s',
         ]);
 
         $loc = EventLocation::create($validated);
