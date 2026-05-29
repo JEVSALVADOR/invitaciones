@@ -312,7 +312,7 @@ button { cursor: pointer; font-family: inherit; }
 /* Flores decorativas dentro del sobre abierto (misma imagen que el sobre cerrado) */
 .open-env-flowers {
     position: absolute;
-    left: -10%;
+    left: -25%;
     top: -18%;
     width: 68%;
     pointer-events: none;
@@ -849,6 +849,11 @@ button { cursor: pointer; font-family: inherit; }
     margin-bottom: 4px;
 }
 
+.timeline-item.left-side .timeline-icon {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .timeline-time {
     display: block;
     font-size: 0.85rem;
@@ -977,12 +982,13 @@ button { cursor: pointer; font-family: inherit; }
 }
 
 .dress-gender {
-    display: block;
+    display: flex;
+    align-items: center;
     font-size: 0.7rem;
     letter-spacing: 0.08em;
     font-weight: 700;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 /* ─── GIFT SECTION ────────────────────────────── */
@@ -1089,6 +1095,30 @@ button { cursor: pointer; font-family: inherit; }
     display: block;
     aspect-ratio: 3/4;
     object-fit: cover;
+}
+
+/* Slideshow contenedor (cuando hay 2-4 fotos en la sección rasgada) */
+.torn-slideshow {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    display: block;
+}
+
+.torn-photo-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.4s ease-in-out;
+    display: block;
+}
+
+.torn-photo-slide.active {
+    opacity: 1;
 }
 
 /* ─── RSVP ────────────────────────────────────── */

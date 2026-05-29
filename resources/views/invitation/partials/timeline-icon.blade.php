@@ -1,3 +1,8 @@
+@if(!empty($icon_image))
+<img src="{{ Storage::url($icon_image) }}"
+     alt=""
+     style="width:32px;height:32px;object-fit:contain;display:block;">
+@else
 @php
 $icons = [
     'church' => '<path d="M10 2v2H8v2h2v1H6v2h4v9h4v-9h4V9h-4V7h2V5h-2V2h-4zm0 4h4v1h-4V6z" fill="currentColor"/>',
@@ -18,3 +23,4 @@ $path = $icons[$type] ?? $icons['custom'];
 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="color: {{ $theme->accent_color ?? '#c9a84c' }}">
     {!! $path !!}
 </svg>
+@endif

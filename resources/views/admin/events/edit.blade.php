@@ -320,7 +320,7 @@
             <!-- Fotos del evento -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
                 <h2 class="text-base font-semibold text-gray-800 pb-2 border-b border-gray-100">Fotos del evento</h2>
-                @foreach(['photo_main' => 'Foto Principal (Polaroid)', 'photo_second' => 'Segunda Foto (Marco dorado)', 'photo_third' => 'Tercera Foto (Efecto rasgado)'] as $type => $label)
+                @foreach(['photo_main' => 'Foto Principal (Polaroid)', 'photo_second' => 'Segunda Foto (Marco dorado)'] as $type => $label)
                 @php $existing = $event->media->where('media_type', $type)->first(); @endphp
                 <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
                     <div class="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
@@ -349,6 +349,62 @@
                     </div>
                 </div>
                 @endforeach
+            </div>
+
+            <!-- Fotos sección rasgada (slideshow) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="mb-5 pb-2 border-b border-gray-100">
+                    <h2 class="text-base font-semibold text-gray-800">Sección rasgada — Fotos del carrusel</h2>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Sube entre 1 y 4 fotos. Con 1 foto se muestra estática; con 2 o más se activa un carrusel con transición de difuminado elegante.
+                    </p>
+                </div>
+                @php
+                    $tornSlots = [
+                        'photo_third'   => ['label' => 'Foto 1 (principal)', 'relation' => 'thirdPhoto'],
+                        'photo_third_2' => ['label' => 'Foto 2',             'relation' => 'thirdPhoto2'],
+                        'photo_third_3' => ['label' => 'Foto 3',             'relation' => 'thirdPhoto3'],
+                        'photo_third_4' => ['label' => 'Foto 4',             'relation' => 'thirdPhoto4'],
+                    ];
+                @endphp
+                <div class="space-y-5">
+                    @foreach($tornSlots as $type => $meta)
+                    @php $existing = $event->{$meta['relation']}; @endphp
+                    <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+                        <div class="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                            @if($existing)
+                            <img src="{{ Storage::url($existing->file_path) }}" class="w-full h-full object-cover" alt="">
+                            @else
+                            <div class="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📷</div>
+                            @endif
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-700 mb-1">{{ $meta['label'] }}</p>
+                            @if($existing)
+                            <p class="text-xs text-emerald-600 font-medium mb-2">Foto cargada</p>
+                            @else
+                            <p class="text-xs text-gray-400 mb-2">Sin foto</p>
+                            @endif
+                            <form method="POST" action="{{ route('admin.events.media.upload', $event) }}" enctype="multipart/form-data" class="flex items-center gap-2">
+                                @csrf
+                                <input type="hidden" name="media_type" value="{{ $type }}">
+                                <input type="file" name="media_file" accept="image/*" required
+                                       class="text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <button type="submit" class="px-3 py-1.5 rounded text-xs font-medium text-white" style="background-color: #1e3a5f">
+                                    {{ $existing ? 'Reemplazar' : 'Subir' }}
+                                </button>
+                            </form>
+                            @if($existing)
+                            <form method="POST" action="{{ route('admin.events.media.delete', [$event, $existing]) }}" class="mt-2">
+                                @csrf @method('DELETE')
+                                <button type="submit" onclick="return confirm('¿Eliminar esta foto?')"
+                                        class="text-xs text-red-500 hover:text-red-700">Eliminar foto</button>
+                            </form>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
             </div>
 
             <!-- Overlays florales de portada -->
@@ -773,7 +829,29 @@
                                 <option value="left" {{ $item->position === 'left' ? 'selected' : '' }}>Izquierda</option>
                             </select>
                         </div>
-                        <div class="flex justify-between mt-3">
+                        {{-- Ícono personalizado --}}
+                        <div class="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
+                            <div class="item-icon-preview w-11 h-11 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center border border-gray-200">
+                                @if($item->icon_image)
+                                <img src="{{ Storage::url($item->icon_image) }}" class="w-full h-full object-contain p-1" alt="">
+                                @else
+                                <svg class="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-medium text-gray-600 mb-1">Ícono personalizado <span class="font-normal text-gray-400">(reemplaza el ícono del selector)</span></p>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <input type="file" accept="image/*" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 item-icon-file">
+                                    <button type="button" onclick="uploadItineraryIcon({{ $item->id }}, this)"
+                                            class="px-2.5 py-1 rounded text-xs font-medium text-white bg-violet-600 hover:bg-violet-700">Subir</button>
+                                    @if($item->icon_image)
+                                    <button type="button" onclick="deleteItineraryIcon({{ $item->id }}, this)"
+                                            class="text-xs text-red-400 hover:text-red-600 item-icon-del-btn">Quitar</button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-3 pt-2">
                             <button type="button" onclick="saveItineraryItem({{ $item->id }}, this)" class="text-xs px-3 py-1 bg-blue-600 text-white rounded">Guardar</button>
                             <button type="button" onclick="deleteItineraryItem({{ $item->id }}, this)" class="text-xs text-red-500">Eliminar</button>
                         </div>
@@ -839,9 +917,62 @@
     </div>
 </div>
 
+<!-- Modal de confirmación personalizado -->
+<div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-[fadeInUp_0.2s_ease]">
+        <div class="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-full bg-red-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path>
+                <path d="M10 11v6M14 11v6"></path>
+                <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"></path>
+            </svg>
+        </div>
+        <h3 id="confirmModalTitle" class="text-base font-semibold text-gray-800 mb-1"></h3>
+        <p id="confirmModalMessage" class="text-sm text-gray-500 mb-6"></p>
+        <div class="flex gap-3">
+            <button onclick="closeConfirmModal()"
+                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
+                Cancelar
+            </button>
+            <button id="confirmModalBtn"
+                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors">
+                Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 const eventId = {{ $event->id }};
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+let _confirmCallback = null;
+
+function customConfirm(title, message, onConfirm) {
+    document.getElementById('confirmModalTitle').textContent   = title;
+    document.getElementById('confirmModalMessage').textContent = message;
+    _confirmCallback = onConfirm;
+    const modal = document.getElementById('confirmModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('confirmModalBtn').onclick = () => {
+        closeConfirmModal();
+        onConfirm();
+    };
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirmModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    _confirmCallback = null;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeConfirmModal();
+});
 
 async function apiPost(url, data) {
     const res = await fetch(url, {
@@ -931,12 +1062,17 @@ async function saveItineraryItem(id, btn) {
     if (res.ok) { btn.textContent = '✓ Guardado'; setTimeout(()=>{ btn.textContent='Guardar'; },2000); }
 }
 
-async function deleteItineraryItem(id, btn) {
-    if (!confirm('¿Eliminar item?')) return;
-    const res = await fetch(`/admin/itinerary/${id}`, {
-        method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrfToken }
-    });
-    if (res.ok) btn.closest('[data-id]').remove();
+function deleteItineraryItem(id, btn) {
+    customConfirm(
+        '¿Eliminar este item?',
+        'Esta acción no se puede deshacer. El item será eliminado permanentemente del itinerario.',
+        async () => {
+            const res = await fetch(`/admin/itinerary/${id}`, {
+                method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrfToken }
+            });
+            if (res.ok) btn.closest('[data-id]').remove();
+        }
+    );
 }
 
 async function addItineraryItem() {
@@ -951,6 +1087,7 @@ async function addItineraryItem() {
     if (!res.success) { alert('Error al crear item'); return; }
     const iconOpts = {church:'Iglesia',camera:'Cámara',reception_table:'Mesa',cake:'Pastel',dance:'Baile',dinner:'Cena',party:'Fiesta',toast:'Brindis',car:'Auto',ring:'Anillo'};
     const options  = Object.entries(iconOpts).map(([v,l]) => `<option value="${v}"${v==='party'?' selected':''}>${l}</option>`).join('');
+    const placeholderSvg = `<svg class="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
     const html = `
     <div class="border border-gray-200 rounded-lg p-4" data-id="${res.id}">
         <div class="grid sm:grid-cols-3 gap-3">
@@ -963,12 +1100,78 @@ async function addItineraryItem() {
                 <option value="left">Izquierda</option>
             </select>
         </div>
-        <div class="flex justify-between mt-3">
+        <div class="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
+            <div class="item-icon-preview w-11 h-11 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center border border-gray-200">
+                ${placeholderSvg}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-600 mb-1">Ícono personalizado <span class="font-normal text-gray-400">(reemplaza el ícono del selector)</span></p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="file" accept="image/*" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 item-icon-file">
+                    <button type="button" onclick="uploadItineraryIcon(${res.id}, this)"
+                            class="px-2.5 py-1 rounded text-xs font-medium text-white bg-violet-600 hover:bg-violet-700">Subir</button>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-between mt-3 pt-2">
             <button type="button" onclick="saveItineraryItem(${res.id}, this)" class="text-xs px-3 py-1 bg-blue-600 text-white rounded">Guardar</button>
             <button type="button" onclick="deleteItineraryItem(${res.id}, this)" class="text-xs text-red-500">Eliminar</button>
         </div>
     </div>`;
     document.getElementById('itinerary-container').insertAdjacentHTML('beforeend', html);
+}
+
+async function uploadItineraryIcon(id, btn) {
+    const row = btn.closest('[data-id]');
+    const fileInput = row.querySelector('.item-icon-file');
+    if (!fileInput.files.length) return;
+
+    const formData = new FormData();
+    formData.append('icon_file', fileInput.files[0]);
+
+    btn.textContent = '...';
+    btn.disabled = true;
+
+    const res = await fetch(`/admin/itinerary/${id}/icon`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': csrfToken },
+        body: formData,
+    });
+    const data = await res.json();
+
+    btn.disabled = false;
+    if (data.success) {
+        const preview = row.querySelector('.item-icon-preview');
+        preview.innerHTML = `<img src="${data.url}" class="w-full h-full object-contain p-1" alt="">`;
+        fileInput.value = '';
+        btn.textContent = '✓ Subido';
+        setTimeout(() => { btn.textContent = 'Subir'; }, 2000);
+        if (!row.querySelector('.item-icon-del-btn')) {
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'text-xs text-red-400 hover:text-red-600 item-icon-del-btn';
+            delBtn.textContent = 'Quitar';
+            delBtn.onclick = () => deleteItineraryIcon(id, delBtn);
+            btn.after(delBtn);
+        }
+    } else {
+        btn.textContent = '✗ Error';
+        setTimeout(() => { btn.textContent = 'Subir'; }, 2000);
+    }
+}
+
+async function deleteItineraryIcon(id, btn) {
+    const res = await fetch(`/admin/itinerary/${id}/icon`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': csrfToken },
+    });
+    const data = await res.json();
+    if (data.success) {
+        const row = btn.closest('[data-id]');
+        const placeholderSvg = `<svg class="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
+        row.querySelector('.item-icon-preview').innerHTML = placeholderSvg;
+        btn.remove();
+    }
 }
 </script>
 

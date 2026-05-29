@@ -94,6 +94,21 @@ class Event extends Model
         return $this->hasOne(EventMedia::class)->where('media_type', 'photo_third');
     }
 
+    public function thirdPhoto2(): HasOne
+    {
+        return $this->hasOne(EventMedia::class)->where('media_type', 'photo_third_2');
+    }
+
+    public function thirdPhoto3(): HasOne
+    {
+        return $this->hasOne(EventMedia::class)->where('media_type', 'photo_third_3');
+    }
+
+    public function thirdPhoto4(): HasOne
+    {
+        return $this->hasOne(EventMedia::class)->where('media_type', 'photo_third_4');
+    }
+
     public function floralTopLeft(): HasOne
     {
         return $this->hasOne(EventMedia::class)->where('media_type', 'floral_top_left');

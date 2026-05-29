@@ -28,6 +28,7 @@ function openEnvelope() {
             sessionStorage.setItem('envelopeOpened', 'true');
             initScrollReveal();
             initCountdown();
+            initTornSlideshow();
             renderCalendar(
                 document.getElementById('eventCalendar')?.dataset.eventDate
             );
@@ -54,6 +55,7 @@ if (envelopeOpened) {
     document.addEventListener('DOMContentLoaded', () => {
         initScrollReveal();
         initCountdown();
+        initTornSlideshow();
         renderCalendar(document.getElementById('eventCalendar')?.dataset.eventDate);
     });
 }
@@ -197,6 +199,19 @@ function initScrollReveal() {
 }
 
 
+/* ─── TORN PHOTO SLIDESHOW ──────────────────── */
+function initTornSlideshow() {
+    const slides = document.querySelectorAll('.torn-photo-slide');
+    if (slides.length < 2) return;
+    let current = 0;
+    setInterval(() => {
+        slides[current].classList.remove('active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+    }, 4000);
+}
+
+
 /* ─── RSVP FORM ─────────────────────────────── */
 const rsvpForm = document.getElementById('rsvpForm');
 if (rsvpForm) {
@@ -228,7 +243,11 @@ if (rsvpForm) {
             if (data.success) {
                 form.innerHTML = `
                     <div style="padding:24px 0; text-align:center">
-                        <div style="font-size:3rem; margin-bottom:14px">🎉</div>
+                        <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; margin-bottom:16px">
+                            <circle cx="36" cy="36" r="34" fill="var(--primary)" opacity="0.12"/>
+                            <circle cx="36" cy="36" r="34" stroke="var(--primary)" stroke-width="2.5"/>
+                            <path d="M20 36 L30 47 L52 25" stroke="var(--primary)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         <p style="font-size:1.1rem; font-weight:700; color:var(--primary); line-height:1.5">
                             ¡Gracias, ${escapeHtml(data.name)}!
                         </p>
@@ -274,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (envelopeOpened) {
         initScrollReveal();
         initCountdown();
+        initTornSlideshow();
         renderCalendar(document.getElementById('eventCalendar')?.dataset.eventDate);
     }
 });

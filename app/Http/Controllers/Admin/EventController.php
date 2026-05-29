@@ -43,7 +43,7 @@ class EventController extends Controller
 
     public function edit(Event $event): View
     {
-        $event->load(['theme', 'media', 'locations', 'itinerary', 'floralTopLeft', 'floralBottomRight', 'floralEnvelope', 'floralDivider', 'floralCalTl', 'floralCalBr', 'sealClosed', 'sealOpen', 'tornTop', 'tornBottom']);
+        $event->load(['theme', 'media', 'locations', 'itinerary', 'floralTopLeft', 'floralBottomRight', 'floralEnvelope', 'floralDivider', 'floralCalTl', 'floralCalBr', 'sealClosed', 'sealOpen', 'tornTop', 'tornBottom', 'thirdPhoto', 'thirdPhoto2', 'thirdPhoto3', 'thirdPhoto4']);
         $themes = Theme::active()->get();
         return view('admin.events.edit', compact('event', 'themes'));
     }
@@ -94,7 +94,7 @@ class EventController extends Controller
     public function uploadMedia(Request $request, Event $event): RedirectResponse
     {
         $request->validate([
-            'media_type' => 'required|in:photo_main,photo_second,photo_third,photo_gallery,floral_top_left,floral_bottom_right,floral_envelope,floral_divider,floral_cal_tl,floral_cal_br,seal_closed,seal_open,torn_top,torn_bottom',
+            'media_type' => 'required|in:photo_main,photo_second,photo_third,photo_third_2,photo_third_3,photo_third_4,photo_gallery,floral_top_left,floral_bottom_right,floral_envelope,floral_divider,floral_cal_tl,floral_cal_br,seal_closed,seal_open,torn_top,torn_bottom',
             'media_file' => 'required|image|mimes:png,jpg,jpeg,gif,webp|max:5120',
         ]);
 

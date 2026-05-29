@@ -13,7 +13,7 @@ class EventItinerary extends Model
 
     protected $fillable = [
         'event_id', 'time_label', 'event_time', 'activity_name',
-        'icon_type', 'position', 'sort_order',
+        'icon_type', 'icon_image', 'position', 'sort_order',
     ];
 
     protected $casts = [

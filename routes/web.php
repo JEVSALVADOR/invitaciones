@@ -79,4 +79,8 @@ Route::prefix('admin')
             ->name('itinerary.update');
         Route::delete('itinerary/{itinerary}', [Admin\ItineraryController::class, 'destroy'])
             ->name('itinerary.destroy');
+        Route::post('itinerary/{itinerary}/icon', [Admin\ItineraryController::class, 'uploadIcon'])
+            ->name('itinerary.icon.upload');
+        Route::delete('itinerary/{itinerary}/icon', [Admin\ItineraryController::class, 'deleteIcon'])
+            ->name('itinerary.icon.delete');
     });

@@ -1,6 +1,13 @@
 @php
 $icons = [
-    'children' => '<path d="M11 7c0 1.66-1.34 3-3 3S5 8.66 5 7s1.34-3 3-3 3 1.34 3 3zm7 0c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zM4 17c0-2 2-4 4-4s4 2 4 4H4zm10 0c0-2 2-4 4-4s4 2 4 4h-8z" fill="currentColor"/> <line x1="9" y1="2" x2="9" y2="5" stroke="currentColor" stroke-width="2"/> <line x1="12" y1="2" x2="12" y2="4" stroke="currentColor" stroke-width="2"/> <path d="M8 2 L16 2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    // Mujer (izq): cabeza + vestido acampanado — Hombre (der): cabeza + torso + piernas
+    'children' =>
+        '<circle cx="7" cy="4.5" r="2.5" fill="currentColor"/>' .
+        '<path d="M4 8.5 Q3 12 2 19.5 L12 19.5 Q11 12 10 8.5 Z" fill="currentColor"/>' .
+        '<circle cx="17" cy="4.5" r="2.5" fill="currentColor"/>' .
+        '<rect x="14" y="8.5" width="6" height="6" rx="0.5" fill="currentColor"/>' .
+        '<rect x="14" y="15" width="2.5" height="4.5" rx="0.5" fill="currentColor"/>' .
+        '<rect x="17.5" y="15" width="2.5" height="4.5" rx="0.5" fill="currentColor"/>',
     'phone'    => '<path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" fill="currentColor"/>',
     'clock'    => '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/>',
     'car'      => '<path d="M5 11l1.5-4.5h11L19 11M17.5 16a1.5 1.5 0 0 1-1.5-1.5A1.5 1.5 0 0 1 17.5 13a1.5 1.5 0 0 1 1.5 1.5A1.5 1.5 0 0 1 17.5 16m-11 0A1.5 1.5 0 0 1 5 14.5 1.5 1.5 0 0 1 6.5 13 1.5 1.5 0 0 1 8 14.5 1.5 1.5 0 0 1 6.5 16M18.92 6A2 2 0 0 0 17 5H7a2 2 0 0 0-1.92 1.38L3 12v8a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-8l-2.08-6z" fill="currentColor"/>',
